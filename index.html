@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gross Science Interactive Comic — Self Contained</title>
+<style>
+:root{--slime:#8cff35;--purple:#6a32b7;--pink:#ff3db7;--blue:#25bff3;--yellow:#ffd72e;--ink:#101010}*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at 30% 20%,#322050,#100f19 65%);color:#fff;min-height:100vh}.app{max-width:1180px;margin:auto;padding:16px}.card{background:#fff;color:#111;border:5px solid #111;border-radius:22px;box-shadow:0 14px 0 rgba(0,0,0,.35);overflow:hidden}.hero{background:linear-gradient(135deg,var(--purple),#231347);padding:28px;text-align:center;border-bottom:6px solid #111}.hero h1{margin:0;font-size:clamp(38px,7vw,84px);line-height:.95;text-transform:uppercase;text-shadow:4px 4px #111}.gross{color:var(--slime)}.science{color:#fff}.hero p{font-size:22px;margin:14px 0 0;color:var(--yellow);font-weight:800}.screen{display:none}.screen.active{display:block}.panel{padding:24px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:760px;margin:20px auto}.field label{display:block;font-weight:900;font-size:20px;margin-bottom:7px}.field input{width:100%;padding:14px;border:4px solid #111;border-radius:12px;background:#fff}.controls{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:18px}.btn{border:4px solid #111;border-radius:14px;padding:12px 18px;font-weight:900;background:var(--yellow);cursor:pointer;box-shadow:0 5px 0 #111}.btn:disabled{opacity:.4;cursor:not-allowed}.btn.green{background:var(--slime)}.btn.blue{background:var(--blue)}.btn.pink{background:var(--pink);color:#fff}.btn.ghost{background:#fff}.small{padding:8px 12px;font-size:14px}.reader{background:#111;padding:12px;border-radius:18px}.reader-top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}.progress-wrap{flex:1;background:#333;border:2px solid #fff;border-radius:12px;overflow:hidden;height:18px}.progress{height:100%;background:linear-gradient(90deg,var(--slime),var(--blue));width:0}.page-stage{perspective:1600px;background:#19151f;border-radius:14px;min-height:70vh;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}.page-img{max-width:100%;max-height:78vh;object-fit:contain;background:#fff;transform-origin:left center;transition:transform .55s ease,opacity .55s ease;box-shadow:0 0 35px rgba(0,0,0,.55)}.page-img.turning{transform:rotateY(-78deg) scale(.98);opacity:.15}.page-label{font-weight:900;color:#fff;min-width:150px;text-align:center}.transcript{background:#fff;color:#111;border:4px solid #111;border-radius:12px;padding:12px;margin-top:12px;max-height:180px;overflow:auto;display:none}.transcript.show{display:block}.quiz-shell{padding:24px}.qmeta{font-weight:900;color:var(--purple);font-size:20px}.question{font-size:26px;font-weight:900;margin:12px 0 20px}.answers{display:grid;gap:12px}.choice{display:flex;gap:10px;align-items:center;border:4px solid #111;border-radius:14px;padding:12px;background:#fff;cursor:pointer}.choice.selected{background:#e8ffd7;outline:4px solid var(--slime)}.letter{width:40px;height:40px;border-radius:50%;background:var(--yellow);border:3px solid #111;display:flex;align-items:center;justify-content:center;font-weight:900}.choice span.text{flex:1}.result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}.result-card{border:4px solid #111;border-radius:14px;padding:12px;background:#fff}.ok{color:#158b31}.bad{color:#b62828}.score{font-size:64px;font-weight:900;color:var(--purple);text-align:center}.note{background:#fff5a8;border:3px solid #111;padding:12px;border-radius:12px;color:#111}@media(max-width:700px){.fields{grid-template-columns:1fr}.page-stage{min-height:55vh}.question{font-size:21px}.hero p{font-size:17px}}
+</style>
+</head>
+<body>
+<div class="app">
+<section id="login" class="screen active card">
+<div class="hero">
+<h1>
+<span class="gross">Gross</span> <span class="science">Science</span>
+</h1>
+<p>The Great Booger Rocket Disaster — Interactive Comic Adventure</p>
+</div>
+<div class="panel">
+<div class="fields">
+<div class="field">
+<label for="studentName">Student Name</label>
+<input id="studentName" placeholder="Type your name">
+</div>
+<div class="field">
+<label for="section">Section</label>
+<input id="section" placeholder="Type your section">
+</div>
+</div>
+<div class="controls">
+<button class="btn blue" onclick="speak('Enter your name and section. Then press Start.')">🔊 Read to Me</button>
+<button id="startBtn" class="btn green" disabled onclick="startBook()">START</button>
+</div>
+<p class="note" style="max-width:760px;margin:18px auto 0">
+<b>For read-aloud:</b> open this file in Google Chrome or Microsoft Edge and allow audio. The comic pages are built into this file, so no separate image folder is needed.</p>
+</div>
+</section>
+<section id="readerScreen" class="screen">
+<div class="reader">
+<div class="reader-top">
+<div class="page-label" id="pageLabel">Cover</div>
+<div class="progress-wrap">
+<div id="progress" class="progress">
+</div>
+</div>
+<button class="btn small blue" onclick="readCurrentPage()">🔊 READ THIS COMIC PAGE</button>
+<button class="btn small ghost" onclick="pauseSpeech()">⏸ PAUSE</button>
+<button class="btn small ghost" onclick="resumeSpeech()">▶ RESUME</button>
+<button class="btn small ghost" onclick="stopSpeech()">⏹ STOP</button>
+</div>
+<div class="page-stage">
+<img id="pageImg" class="page-img" alt="Comic page">
+</div>
+<div class="controls">
+<button class="btn small ghost" onclick="toggleTranscript()">SHOW / HIDE READ-ALOUD TEXT</button>
+</div>
+<div id="transcript" class="transcript">
+</div>
+<div class="controls">
+<button id="prevBtn" class="btn ghost" onclick="prevPage()">← PREVIOUS PAGE</button>
+<button id="nextBtn" class="btn green" onclick="nextPage()">TURN PAGE →</button>
+</div>
+</div>
+</section>
+<section id="finishScreen" class="screen card">
+<div class="hero">
+<h1 style="font-size:58px">
+<span class="gross">You Finished</span> <span class="science">the Story!</span>
+</h1>
+<p>But the investigation isn't over...</p>
+</div>
+<div class="panel">
+<div class="controls">
+<button class="btn blue" onclick="reviewComic()">REVIEW THE COMIC</button>
+<button class="btn green" onclick="startQuiz()">TAKE THE SCIENCE QUIZ</button>
+</div>
+</div>
+</section>
+<section id="quizScreen" class="screen card">
+<div class="hero">
+<h1 style="font-size:54px">
+<span class="science">Science</span> <span class="gross">Quiz</span>
+</h1>
+<p>10 Questions — Use what you learned from the comic.</p>
+</div>
+<div class="quiz-shell">
+<div class="qmeta" id="qMeta">
+</div>
+<div class="question" id="qText">
+</div>
+<div class="controls" style="justify-content:flex-start">
+<button class="btn small blue" onclick="readQuestion()">🔊 READ QUESTION</button>
+</div>
+<div class="answers" id="answers">
+</div>
+<div class="controls">
+<button class="btn ghost" id="qBack" onclick="quizBack()">← BACK</button>
+<button class="btn green" id="qNext" onclick="quizNext()">NEXT →</button>
+</div>
+</div>
+</section>
+<section id="reviewScreen" class="screen card">
+<div class="hero">
+<h1 style="font-size:50px">
+<span class="science">Review</span> <span class="gross">Answers</span>
+</h1>
+<p>Check your choices before you submit.</p>
+</div>
+<div class="panel" id="reviewList">
+</div>
+<div class="controls" style="padding-bottom:24px">
+<button class="btn ghost" onclick="returnToQuiz()">← CHANGE ANSWERS</button>
+<button class="btn pink" onclick="submitQuiz()">SUBMIT QUIZ</button>
+</div>
+</section>
+<section id="resultsScreen" class="screen card">
+<div class="hero">
+<h1 style="font-size:48px">
+<span class="gross">Science Mission</span> <span class="science">Complete!</span>
+</h1>
+<p id="studentResultLine">
+</p>
+</div>
+<div class="panel">
+<div id="score" class="score">
+</div>
+<p id="teacherSubmitStatus" class="note" style="text-align:center;font-weight:900">Your results have NOT been sent yet. Click SUBMIT RESULTS TO TEACHER below.</p>
+<div class="result-grid" id="resultGrid">
+</div>
+<div class="controls">
+<button id="teacherSubmitBtn" class="btn pink" onclick="submitResultsToTeacher()">SUBMIT RESULTS TO TEACHER</button>
+<button class="btn blue" onclick="copyResults()">COPY RESULTS</button>
+<button class="btn ghost" onclick="downloadCSV()">DOWNLOAD CSV</button>
+<button class="btn green" onclick="restart()">START OVER</button>
+</div>
+<p class="note">
+<b>Important:</b> Click <b>SUBMIT RESULTS TO TEACHER</b> before leaving this page. Copy Results and Download CSV are backup options.</p>
+</div>
+</section>
+</div>
+<script>
+const GOOGLE_SHEETS_WEB_APP = 'https://script.google.com/a/macros/lifeschools.net/s/AKfycbwJt8uSCpbose59-Ir1dMUNvT5QP74BWGuFDUNtGe24qKz4cyCWcdRE_lfY1E5v7L-UTQ/exec';
+const pages=["comic-page-01.jpg", "comic-page-02.jpg", "comic-page-03.jpg", "comic-page-04.jpg", "comic-page-05.jpg", "comic-page-06.jpg", "comic-page-07.jpg", "comic-page-08.jpg", "comic-page-09.jpg", "comic-page-10.jpg", "comic-page-11.jpg", "comic-page-12.jpg"]; const pageTitles=["Cover", "Page 1 - The Sneeze Lab", "Page 2 - The Tug-of-Slime", "Page 3 - The Booger Bowling Ball", "Page 4 - The Invisible Monster", "Page 5 - Attack of the Magnetic Boogers", "Page 6 - The Sneeze Cannon", "Page 7 - The Investigation Begins", "Page 8 - The Gross Science Test", "Page 9 - The Data Disaster", "Page 10 - The Great Booger Rocket Launch", "The Sneeze Lab Review"]; const narrations=["Gross Science: The Great Booger Rocket Disaster! Equal forces? Unequal forces? What's the difference? Can Dr. Gross discover why some forces cause motion while others do not? Booger fuel powered! Science is gross! TEKS 5.7A and 5.7B. Forces. Motion. Energy. Investigations.", "Page 1. The Sneeze Lab. Panel 1. Dr. Gross says, \u201cToday we launch the world's first booger rocket!\u201d Panel 2. Snotley loads the fuel. Snotley says, \u201cThis is my finest booger batch!\u201d Panel 3. Snotley sneezes. \u201cSnot!\u201d The Booger Rocket wiggles. \u201cWiggle! Wiggle!\u201d Panel 4. The rocket doesn't move. Snotley says, \u201cUh... why didn't it launch?\u201d Panel 5. Dr. Gross points at the rocket and says, \u201cThe forces are equal!\u201d Vocabulary Spotlight: Force. A push or pull that can change motion. Equal Forces. Forces that do not change an object's motion. Dr. Gross says, \u201cWe need to figure out what's stopping our rocket!\u201d", "Page 2. The Tug-of-Slime. Panel 1. Dr. Gross says, \u201cLet's see what happens when we pull!\u201d Mucus Max and Snotley pull on opposite sides of the rocket. Panel 2. Both pull equally. The rocket stays still. \u201cStill...\u201d Panel 3. Mucus Max slips into slime. \u201cSlip! Sploosh!\u201d Panel 4. Only one monster keeps pulling. The rocket shoots sideways. \u201cWhoooosh!\u201d Panel 5. Students stare. Dr. Gross explains, \u201cWhen forces become unequal, motion changes.\u201d Vocabulary Spotlight: Unequal Forces. Forces that cause a change in motion. A student asks, \u201cThen why won't the rocket launch into the sky?\u201d", "Page 3. The Booger Bowling Ball. Panel 1. Dr. Gross notices slime underneath the rocket. He says, \u201cHmm... something is slowing it down.\u201d Panel 2. He rolls a giant booger bowling ball. \u201cRoll!\u201d Panel 3. The ball moves fast. \u201cWhoosh!\u201d Panel 4. Sticky slime slows it down. \u201cSloooow...\u201d Panel 5. The ball stops. The slime monster cries, \u201cWho stole its energy?!\u201d Science Spotlight: Friction. A force that acts opposite movement. How It Works: Friction transfers motion energy into heat energy. Dr. Gross says, \u201cThe slime may be stealing our rocket's energy!\u201d", "Page 4. The Invisible Monster. Panel 1. Students clean all the slime from beneath the rocket. Panel 2. They launch again. \u201cWhoosh!\u201d Panel 3. Everyone cheers. \u201cYeah!\u201d Panel 4. The rocket immediately falls. Panel 5. \u201cSplaaaaat!\u201d Panel 6. Dr. Gross points upward and says, \u201cThe invisible force is gravity!\u201d Vocabulary Spotlight: Gravity. A force that pulls objects toward each other. A student asks, \u201cSo gravity is fighting our rocket?\u201d", "Page 5. Attack of the Magnetic Boogers. Panel 1. Dr. Gross creates magnetic booger fuel. He says, \u201cThis fuel has magnetic power!\u201d Panel 2. The rocket launches sideways. \u201cWhoosh!\u201d Panel 3. The rocket sticks to a giant metal locker. \u201cClang!\u201d Panel 4. Everyone stares. Panel 5. Dr. Gross says, \u201cOops.\u201d Vocabulary Spotlight: Magnetism. A force that pushes or pulls magnetic materials across a distance. The slime monster says, \u201cOur rocket is stuck!\u201d", "Page 6. The Sneeze Cannon. Panel 1. Dr. Gross builds a giant sneeze machine, the Sneeze Cannon 3000. Panel 2. Snotley sneezes into it. \u201cSnnnnnort!\u201d Panel 3. The rocket blasts free. \u201cWhoooooosh!\u201d Panel 4. It crashes through the wall. \u201cKaboom!\u201d Panel 5. Students are covered in slime. Science Spotlight: Energy Transfer. Sneeze energy transfers into motion energy. Dr. Gross says, \u201cWe finally have enough power!\u201d", "Page 7. The Investigation Begins. Panel 1. Students gather around the damaged rocket. Panel 2. A student says, \u201cWe need a real experiment.\u201d Panel 3. Question: \u201cHow does force affect the distance the rocket travels?\u201d Panel 4. Students create a hypothesis: \u201cIf a stronger force is used, then the rocket will travel farther.\u201d Vocabulary Spotlight: Investigation. A careful process used to ask questions, gather information, and find answers. Testable Hypothesis: A clear, if-then statement that can be tested with an experiment. Variable: The part of an experiment that is changed. Control: The parts of an experiment that stay the same. Dr. Gross says, \u201cLet's test it!\u201d", "Page 8. The Gross Science Test. Panel 1. Weak sneeze. \u201cAchoo.\u201d The Booger Rocket travels 2 feet. Panel 2. Medium sneeze. \u201cAh-chooo!\u201d The rocket travels 6 feet. Panel 3. Mega sneeze. \u201cAhhhh-chooooo!\u201d The rocket travels 12 feet. Panel 4. Students record data. Sneeze strength: weak, 2 feet; medium, 6 feet; mega, 12 feet. Vocabulary Spotlight: Controlled Experiment. A fair test where only one variable changes. One variable is changed, and the result is measured. Then Snotley spills the data. \u201cOops! Splat!\u201d", "Page 9. The Data Disaster. Panel 1. Students panic. \u201cNoooo! Our data!\u201d Panel 2. They repeat the tests: weak sneeze, medium sneeze, and mega sneeze. Panel 3. Results stay almost the same. Repeat Test Results: Weak, test 1: 2.0 feet, test 2: 2.1 feet, test 3: 2.0 feet, average 2.0 feet. Medium: 6.1 feet, 5.9 feet, 6.0 feet, average 6.0 feet. Mega: 12.0 feet, 12.2 feet, 11.9 feet, average 12.0 feet. The students say, \u201cThe results are almost the same!\u201d Panel 4. Dr. Gross smiles and says, \u201cThat means our results are reliable!\u201d Vocabulary Spotlight: Reliability. When tests are repeated and the results are almost the same. Vocabulary Spotlight: Valid Conclusion. A conclusion that is based on reliable data and answers the question. Conclusion: Greater force caused greater motion. Dr. Gross says, \u201cWe are finally ready!\u201d", "Page 10. The Great Booger Rocket Launch. The class counts down: \u201c10... 9... 8...\u201d Snotley powers the Sneeze Cannon. \u201cSnnnnnnnort!\u201d The Booger Rocket launches. \u201cWhooooooooosh!\u201d The page reviews the science that made the launch work. Unequal forces: the sneeze pushes more on one side. Friction: less slime means less slowdown. Gravity: enough force to overcome gravity. Energy transfer: sneeze energy changes into motion energy. Motion: the rocket moves forward. Investigation success: testing helps solve problems. The students celebrate, \u201cWe solved the great booger rocket disaster!\u201d Dr. Gross says, \u201cAnd nobody got covered in slime!\u201d But wait... \u201cSplaaaaaat!\u201d The end.", "The Sneeze Lab Review. What we learned about forces. Friction: a force that acts opposite movement. Gravity: the invisible force that pulls objects toward each other. Magnetism: a force that pushes or pulls magnetic materials across a distance. Energy Transfer: energy can move from one object to another and cause motion. Investigation: a careful process used to ask questions, gather information, and find answers. Variable: the part of an experiment that is changed. Our investigation in action: We asked a question, \u201cHow does force affect the distance the rocket travels?\u201d We made a hypothesis, \u201cIf a stronger force is used, then the rocket will travel farther.\u201d We tested sneeze power: weak, 2 feet; medium, 6 feet; mega, 12 feet. We repeated the tests for reliable results. We made a conclusion: Greater force caused greater motion. Vocabulary Spotlight: Force, friction, gravity, magnetism, energy transfer, investigation, testable hypothesis, variable, control, reliability, and valid conclusion. Science Success! Ask questions. Test ideas. Learn. Solve. Repeat!"]; const quiz=[{"q": "When both slime monsters pulled on the rocket with equal forces, what happened?", "a": ["The rocket moved toward Mucus Max.", "The rocket moved toward Snotley.", "The rocket did not change its motion.", "The rocket launched into the air."], "c": 2, "e": "Equal forces do not change an object's motion."}, {"q": "What happened when only one slime monster continued pulling the rocket?", "a": ["The rocket's motion changed.", "The rocket stayed completely still.", "Gravity disappeared.", "The rocket became magnetic."], "c": 0, "e": "When the pulls became unequal, the rocket's motion changed."}, {"q": "Sticky slime caused the Booger Bowling Ball to slow down. Which force caused this?", "a": ["Gravity", "Friction", "Magnetism", "Equal forces"], "c": 1, "e": "Friction acts opposite motion and can slow an object."}, {"q": "Which force pulled the Booger Rocket back toward Earth?", "a": ["Friction", "Magnetism", "Gravity", "A push"], "c": 2, "e": "Gravity pulls objects toward one another, including toward Earth."}, {"q": "Why did the magnetic booger fuel cause the rocket to stick to the metal locker?", "a": ["Gravity pulled it sideways.", "Friction made it stop.", "Magnetism acted across a distance.", "The forces were equal."], "c": 2, "e": "Magnetism can attract magnetic materials across a distance."}, {"q": "When Snotley sneezed into the Sneeze Cannon and the rocket blasted forward, what was transferred?", "a": ["Matter", "Gravity", "Energy", "Magnetism"], "c": 2, "e": "Energy from the sneeze was transferred to the rocket and caused motion."}, {"q": "What question did the students decide to investigate?", "a": ["How does force affect the distance the rocket travels?", "What color should the rocket be?", "How much slime can the rocket hold?", "Which student can sneeze the loudest?"], "c": 0, "e": "The investigation question asks how force affects the distance traveled."}, {"q": "What was the variable in the students' investigation?", "a": ["The distance the rocket traveled", "The part of the experiment that was changed", "Everything that stayed the same", "The students recording the results"], "c": 1, "e": "A variable is the part of an experiment that is changed."}, {"q": "Why did the students repeat their experiment?", "a": ["To make the rocket look different", "To change every variable", "To determine whether their results were reliable", "To make the experiment take longer"], "c": 2, "e": "Repeated trials help show whether results are reliable."}, {"q": "What conclusion did the students make from their investigation?", "a": ["Greater force caused greater motion.", "Equal forces always make objects move faster.", "Gravity caused the rocket to travel farther.", "Friction increased the rocket's motion."], "c": 0, "e": "Their repeated data supported the conclusion that greater force caused greater motion."}];
+let student={name:'',section:''},pageIndex=0,qIndex=0,answers=Array(10).fill(null),submitted=false,currentUtterance=null,lastTeacherPayload=null,teacherResultsSent=false;const $=id=>document.getElementById(id);const screens=['login','readerScreen','finishScreen','quizScreen','reviewScreen','resultsScreen'];
+function show(id){
+  screens.forEach(s=>$(s).classList.toggle('active',s===id));
+  stopSpeech();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+let speechChunks=[], speechChunkIndex=0, speechStopped=true;
+function pickVoice(){
+  if(!('speechSynthesis' in window)) return null;
+  const voices=window.speechSynthesis.getVoices();
+  return voices.find(v=>/^en-US/i.test(v.lang)) || voices.find(v=>/^en/i.test(v.lang)) || voices[0] || null;
+}
+function splitForSpeech(text){
+  const sentences=(text.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[text]).map(s=>s.trim()).filter(Boolean);
+  const chunks=[];
+  let cur='';
+  for(const s of sentences){
+    if((cur+' '+s).trim().length>210 && cur){ chunks.push(cur.trim()); cur=s; }
+    else cur=(cur+' '+s).trim();
+  }
+  if(cur) chunks.push(cur.trim());
+  return chunks;
+}
+function speak(text){
+  stopSpeech();
+  if(!('speechSynthesis' in window)){
+    alert('Read-aloud is not supported in this browser. Please open this activity in Chrome or Microsoft Edge.');
+    return;
+  }
+  speechChunks=splitForSpeech(text);
+  speechChunkIndex=0;
+  speechStopped=false;
+  speakNextChunk();
+}
+function speakNextChunk(){
+  if(speechStopped || speechChunkIndex>=speechChunks.length) return;
+  const u=new SpeechSynthesisUtterance(speechChunks[speechChunkIndex]);
+  const voice=pickVoice();
+  if(voice) u.voice=voice;
+  u.rate=.88; u.pitch=1; u.volume=1;
+  u.onend=()=>{ speechChunkIndex++; if(!speechStopped) setTimeout(speakNextChunk,80); };
+  u.onerror=(e)=>{ console.warn('Speech error',e); speechChunkIndex++; if(!speechStopped) setTimeout(speakNextChunk,100); };
+  currentUtterance=u;
+  window.speechSynthesis.speak(u);
+}
+function stopSpeech(){
+  speechStopped=true;
+  speechChunks=[];
+  speechChunkIndex=0;
+  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+function pauseSpeech(){ if('speechSynthesis' in window) window.speechSynthesis.pause(); }
+function resumeSpeech(){ if('speechSynthesis' in window) window.speechSynthesis.resume(); }
+
+$('studentName').addEventListener('input',validate);$('section').addEventListener('input',validate);function validate(){$('startBtn').disabled=!($('studentName').value.trim()&&$('section').value.trim())}function startBook(){student={name:$('studentName').value.trim(),section:$('section').value.trim()};pageIndex=0;renderPage();show('readerScreen')}function renderPage(){
+  const img=$('pageImg');
+  img.onerror=()=>{
+    console.error('Comic image failed to load for page',pageIndex+1);
+    img.alt='Comic page could not load. Please use the self-contained HTML in Chrome or Edge.';
+    const stage=img.parentElement;
+    stage.style.background='#fff0f0';
+    stage.setAttribute('data-error','true');
+  };
+  img.onload=()=>{
+    const stage=img.parentElement;
+    stage.style.background='#19151f';
+    stage.removeAttribute('data-error');
+  };
+  img.removeAttribute('src');
+  img.src=pages[pageIndex];
+  $('pageLabel').textContent=pageTitles[pageIndex];
+  $('progress').style.width=((pageIndex+1)/pages.length*100)+'%';
+  $('prevBtn').disabled=pageIndex===0;
+  $('nextBtn').textContent=pageIndex===pages.length-1?'FINISH BOOK →':'TURN PAGE →';
+  $('transcript').textContent=narrations[pageIndex];
+}function nextPage(){stopSpeech();if(pageIndex===pages.length-1){show('finishScreen');return}const img=$('pageImg');img.classList.add('turning');setTimeout(()=>{pageIndex++;renderPage();img.classList.remove('turning')},520)}function prevPage(){if(pageIndex>0){stopSpeech();pageIndex--;renderPage()}}function readCurrentPage(){speak(narrations[pageIndex])}function toggleTranscript(){$('transcript').classList.toggle('show')}function reviewComic(){pageIndex=0;renderPage();show('readerScreen')}
+function startQuiz(){qIndex=0;renderQuiz();show('quizScreen')}function renderQuiz(){$('qMeta').textContent=`Question ${qIndex+1} of 10`;$('qText').textContent=quiz[qIndex].q;const wrap=$('answers');wrap.innerHTML='';quiz[qIndex].a.forEach((t,i)=>{const d=document.createElement('div');d.className='choice'+(answers[qIndex]===i?' selected':'');d.innerHTML=`<span class="letter">${String.fromCharCode(65+i)}</span>
+<span class="text">${t}</span>
+<button class="btn small blue" type="button">🔊</button>`;d.onclick=e=>{if(e.target.tagName==='BUTTON'){e.stopPropagation();speak(t);return}answers[qIndex]=i;renderQuiz()};wrap.appendChild(d)});$('qBack').disabled=qIndex===0;$('qNext').disabled=answers[qIndex]===null;$('qNext').textContent=qIndex===9?'REVIEW ANSWERS':'NEXT →'}function readQuestion(){speak(quiz[qIndex].q)}function quizBack(){if(qIndex>0){qIndex--;renderQuiz()}}function quizNext(){if(answers[qIndex]===null)return;if(qIndex<9){qIndex++;renderQuiz()}else showReview()}function showReview(){const list=$('reviewList');list.innerHTML='';quiz.forEach((q,i)=>{const d=document.createElement('div');d.className='result-card';d.innerHTML=`<b>${i+1}. ${q.q}</b>
+<br>Your answer: ${answers[i]===null?'Not answered':String.fromCharCode(65+answers[i])+'. '+q.a[answers[i]]}`;list.appendChild(d)});show('reviewScreen')}function returnToQuiz(){qIndex=0;renderQuiz();show('quizScreen')}
+async function sendResultsToTeacher(payload){
+  const statusEl=$('teacherSubmitStatus');
+  if(statusEl){statusEl.textContent='Sending your results to your teacher...';statusEl.style.background='#fff5a8';}
+  try{
+    await fetch(GOOGLE_SHEETS_WEB_APP,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(payload)
+    });
+    if(statusEl){statusEl.textContent='✓ Results submitted to your teacher.';statusEl.style.background='#dff7d8';}
+    teacherResultsSent=true;
+    const btn=$('teacherSubmitBtn'); if(btn){btn.disabled=true;btn.textContent='✓ RESULTS SUBMITTED';}
+    localStorage.setItem('grossScienceLastSubmitStatus','sent');
+  }catch(err){
+    console.error('Teacher results submission failed:',err);
+    if(statusEl){statusEl.textContent='⚠ Results could not be sent automatically. Please use COPY RESULTS or DOWNLOAD CSV and tell your teacher.';statusEl.style.background='#ffd7d7';}
+    localStorage.setItem('grossScienceLastSubmitStatus','failed');
+  }
+}
+function submitQuiz(){
+  if(submitted)return;
+  submitted=true;
+  const correct=answers.reduce((n,a,i)=>n+(a===quiz[i].c),0),pct=correct*10;
+  const stamp=new Date();
+  const payload={
+    name:student.name,
+    section:student.section,
+    score:correct,
+    percentage:pct,
+    q1:quiz[0].a[answers[0]],
+    q2:quiz[1].a[answers[1]],
+    q3:quiz[2].a[answers[2]],
+    q4:quiz[3].a[answers[3]],
+    q5:quiz[4].a[answers[4]],
+    q6:quiz[5].a[answers[5]],
+    q7:quiz[6].a[answers[6]],
+    q8:quiz[7].a[answers[7]],
+    q9:quiz[8].a[answers[8]],
+    q10:quiz[9].a[answers[9]],
+    correct1:answers[0]===quiz[0].c,
+    correct2:answers[1]===quiz[1].c,
+    correct3:answers[2]===quiz[2].c,
+    correct4:answers[3]===quiz[3].c,
+    correct5:answers[4]===quiz[4].c,
+    correct6:answers[5]===quiz[5].c,
+    correct7:answers[6]===quiz[6].c,
+    correct8:answers[7]===quiz[7].c,
+    correct9:answers[8]===quiz[8].c,
+    correct10:answers[9]===quiz[9].c,
+    submittedAt:stamp.toISOString()
+  };
+  lastTeacherPayload=payload;
+  teacherResultsSent=false;
+  localStorage.setItem('grossScienceLastResult',JSON.stringify({name:student.name,section:student.section,date:stamp.toLocaleDateString(),time:stamp.toLocaleTimeString(),correct,percentage:pct,answers:[...answers]}));
+  $('studentResultLine').textContent=`${student.name} • Section ${student.section}`;
+  $('score').textContent=`${correct}/10 — ${pct}%`;
+  const grid=$('resultGrid');grid.innerHTML='';
+  quiz.forEach((q,i)=>{const ok=answers[i]===q.c;const d=document.createElement('div');d.className='result-card';d.innerHTML=`<h3 class="${ok?'ok':'bad'}">${ok?'✓ Correct':'✗ Review'} — Question ${i+1}</h3>${ok?'':`<p>
+<b>Your answer:</b> ${q.a[answers[i]]}</p>
+<p>
+<b>Correct answer:</b> ${q.a[q.c]}</p>
+<p>${q.e}</p>`}`;grid.appendChild(d)});
+  show('resultsScreen');
+  const statusEl=$('teacherSubmitStatus'); if(statusEl){statusEl.textContent='Your results have NOT been sent yet. Click SUBMIT RESULTS TO TEACHER below.';statusEl.style.background='#fff5a8';}
+  const btn=$('teacherSubmitBtn'); if(btn){btn.disabled=false;btn.textContent='SUBMIT RESULTS TO TEACHER';}
+}
+async function submitResultsToTeacher(){
+  if(teacherResultsSent){return;}
+  if(!lastTeacherPayload){
+    const statusEl=$('teacherSubmitStatus'); if(statusEl){statusEl.textContent='⚠ No quiz result is ready to submit.';statusEl.style.background='#ffd7d7';}
+    return;
+  }
+  const btn=$('teacherSubmitBtn'); if(btn){btn.disabled=true;btn.textContent='SENDING...';}
+  await sendResultsToTeacher(lastTeacherPayload);
+  if(!teacherResultsSent && btn){btn.disabled=false;btn.textContent='TRY SUBMIT AGAIN';}
+}
+
+function resultsText(){
+  const correct=answers.reduce((n,a,i)=>n+(a===quiz[i].c),0);
+  const lines=[
+    'Gross Science Quiz Results',
+    `Student: ${student.name}`,
+    `Section: ${student.section}`,
+    `Score: ${correct}/10 (${correct*10}%)`,
+    ''
+  ];
+  quiz.forEach((q,i)=>{
+    const choice=answers[i]===null?'Not answered':String.fromCharCode(65+answers[i]);
+    lines.push(`${i+1}. ${choice} - ${answers[i]===q.c?'Correct':'Incorrect'}`);
+  });
+  return lines.join('\n');
+}
+async function copyResults(){
+  try{
+    await navigator.clipboard.writeText(resultsText());
+    alert('Results copied!');
+  }catch(e){
+    prompt('Copy these results:',resultsText());
+  }
+}
+function downloadCSV(){
+  const correct=answers.reduce((n,a,i)=>n+(a===quiz[i].c),0);
+  let heads=['Student Name','Section','Score','Percentage'];
+  let row=[student.name,student.section,correct,correct*10];
+  quiz.forEach((q,i)=>{
+    heads.push(`Q${i+1} Answer`,`Q${i+1} Correct`);
+    row.push(answers[i]===null?'':String.fromCharCode(65+answers[i]),answers[i]===q.c?'Yes':'No');
+  });
+  const esc=v=>'"'+String(v).replaceAll('"','""')+'"';
+  const csv=heads.map(esc).join(',')+'\n'+row.map(esc).join(',');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`gross-science-${student.name.replace(/\s+/g,'-')}.csv`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function restart(){
+  submitted=false;
+  answers=Array(10).fill(null);
+  $('studentName').value='';
+  $('section').value='';
+  validate();
+  show('login');
+}
+renderPage();
+</script>
+</body>
+</html>
